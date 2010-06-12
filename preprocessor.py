@@ -23,5 +23,6 @@ def preprocess(code):
         else:
             new_lines.append(line)
         indentation_level = new_level
+    new_lines.append('}' * indentation_level)
     return '\n'.join(new_lines)
 

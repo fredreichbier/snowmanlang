@@ -15,8 +15,14 @@ def d_statement(t):
                  | declaration
                  | assignment
                  | definition
+                 | return_statement
+                 | type_declaration
     '''
     return t[0]
+
+def d_return_statement(t):
+    ''' return_statement: 'return' expression '''
+    return nodes.Return(t[1])
 
 def d_definition(t):
     ''' definition: declaration '<-' expression '''
@@ -87,6 +93,18 @@ def d_identifier(t):
     r''' identifier: "[a-zA-Z_][a-zA-Z0-9_]*" '''
     return nodes.Identifier(t[0])
 
+def d_type_declaration(t):
+    ''' type_declaration: object_type_declaration '''
+    return t[0]
+
+def d_object_type_declaration(t):
+    ''' object_type_declaration: identifier '<-' 'Object' ':' declaration_block '''
+    return nodes.ObjectTypeDeclaration(t[0], t[4])
+
+def d_declaration_block(t):
+    ''' declaration_block: '{' declaration* '}' '''
+    return nodes.DeclarationBlock(t[1])
+
 def parse(s):
     return Parser().parse(preprocessor.preprocess(s)).getStructure()
 
@@ -95,13 +113,17 @@ pprint(parse('''
 a as Function <- String():
     132
     "huhu"
+    return huhu(1, 2, 3, fff)
 
 bubu <- a(3, "hallo")
 
 urgh as String <- vzvz(6336, String():
     3544
 )
-'''))
+
+Person <- Object:
+    name as String
+    age as Int'''))
 #print parser.parse("""String get_name(person as Person):
 #    return person.name
 

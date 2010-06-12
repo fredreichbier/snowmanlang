@@ -61,6 +61,15 @@ class Block(Node):
     def __repr__(self):
         return '<%s at 0x%x = %r>' % (type(self).__name__, id(self), self.statements)
 
+class DeclarationBlock(Node):
+    def __init__(self, decls):
+        Node.__init__(self)
+        self.decls = decls
+
+    def __repr__(self):
+        return '<%s at 0x%x = %r>' % (type(self).__name__, id(self), self.decls)
+
+
 class Function(Expression):
     def __init__(self, return_type, signature, block):
         Expression.__init__(self)
@@ -81,5 +90,22 @@ class Call(Expression):
     def __repr__(self):
         return '<%s at 0x%x = %r(%r)>' % (type(self).__name__, id(self),
             self.name, self.argument_list)
+
+class Return(Node):
+    def __init__(self, expr):
+        Node.__init__(self)
+        self.expr = expr
+
+    def __repr__(self):
+        return '<%s at 0x%x = %r>' % (type(self).__name__, id(self), self.expr)
+
+class ObjectTypeDeclaration(Node):
+    def __init__(self, name, decl_block):
+        Node.__init__(self)
+        self.name = name
+        self.decl_block = decl_block
+
+    def __repr__(self):
+        return '<%s at 0x%x = %r, %r>' % (type(self).__name__, id(self), self.name, self.decl_block)
 
 
