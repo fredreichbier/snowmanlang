@@ -1,21 +1,14 @@
 from dparser import Parser
 
-import nodes
+import nodes, preprocessor
 
 def d_program(t):
     ''' program: stuff '''
     return t[0]
 
 def d_stuff(t):
-    ''' stuff: (statement? '\n')* '''
-    stmts = []
-    for noodle in t[0]:
-        if len(noodle) == 2:
-            stmts.append(noodle[0])
-    return stmts
-
-def d_whitespace(t):
-    ''' whitespace: "[\t ]+" '''
+    ''' stuff: statement* '''
+    return t[0]
 
 def d_statement(t):
     ''' statement: expression
@@ -94,20 +87,21 @@ def d_identifier(t):
     r''' identifier: "[a-zA-Z_][a-zA-Z0-9_]*" '''
     return nodes.Identifier(t[0])
 
-parser = Parser()
-print parser.parse('''
-a as Function <- String(): {
+def parse(s):
+    return Parser().parse(preprocessor.preprocess(s)).getStructure()
+
+from pprint import pprint
+pprint(parse('''
+a as Function <- String():
     132
     "huhu"
-}
-
 
 bubu <- a(3, "hallo")
 
-urgh as String <- vzvz(6336, String(): {
+urgh as String <- vzvz(6336, String():
     3544
-})
-''').getStructure()
+)
+'''))
 #print parser.parse("""String get_name(person as Person):
 #    return person.name
 
