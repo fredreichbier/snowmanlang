@@ -1,6 +1,7 @@
 from dparser import Parser
+from itertools import starmap
 
-import nodes, preprocessor
+import nodes, preprocessor, operators
 
 def d_program(t):
     ''' program: stuff '''
@@ -17,6 +18,7 @@ def d_statement(t):
                  | definition
                  | return_statement
                  | type_declaration
+                 | if_statemenet
     '''
     return t[0]
 
@@ -32,14 +34,47 @@ def d_assignment(t):
     ''' assignment: identifier '<-' expression '''
     return nodes.Assignment(t[0], t[2])
 
+def d_if_statement(t):
+    ''' if_statemenet: 'if' expression ':' block ('else:' block)? '''
+    return nodes.If(t[1], t[3], t[4][0] if t[4] else None)
+
 def d_expression(t):
-    ''' expression: literal
-                  | identifier
-                  | assignment
-                  | function
-                  | call
+    ''' expression: '('? _expression ')'? '''
+    if len(t) == 1:
+        return t[0]
+    else:
+        expr = t[1]
+        expr.eval_first = True
+        return expr
+
+def d__expression(t):
+    ''' _expression: literal
+                   | identifier
+                   | assignment
+                   | function
+                   | call
+                   | logical_expression
     '''
     return t[0]
+
+def d_logical_expression(t):
+    ''' logical_expression: expression (logical_operator expression)*
+    '''
+    return nodes.LogicalExpression(t)
+
+def d_logical_operator(t):
+    ''' logical_operator: 'is'
+                        | 'and'
+                        | 'or'
+                        | '<'
+                        | '>'
+                        | '<='
+                        | '>='
+                        | '&'
+                        | '|'
+                        | 'xor'
+    '''
+    return operators.for_symbol(t[0])
 
 def d_call(t):
     '''
@@ -107,24 +142,3 @@ def d_declaration_block(t):
 
 def parse(s):
     return Parser().parse(preprocessor.preprocess(s)).getStructure()
-
-from pprint import pprint
-pprint(parse('''
-a as Function <- String():
-    132
-    "huhu"
-    return huhu(1, 2, 3, fff)
-
-bubu <- a(3, "hallo")
-
-urgh as String <- vzvz(6336, String():
-    3544
-)
-
-Person <- Object:
-    name as String
-    age as Int'''))
-#print parser.parse("""String get_name(person as Person):
-#    return person.name
-
-#""")
