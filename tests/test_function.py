@@ -29,10 +29,8 @@ class FunctionTestcase(Testcase):
                     ],
                     Block([
                         If(
-                            LogicalExpression([
-                                _('c'),
-                                OP.AND,
-                                LogicalExpression([_('d'), OP.OR, _('e')]),
+                            Condition([
+                                Condition([_('d'), OP.OR, _('e')]),
                                 OP.OR,
                                 _('f')
                             ]),

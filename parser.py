@@ -53,14 +53,14 @@ def d__expression(t):
                    | assignment
                    | function
                    | call
-                   | logical_expression
+                   | condition
     '''
     return t[0]
 
-def d_logical_expression(t):
-    ''' logical_expression: expression (logical_operator expression)*
+def d_condition(t):
+    ''' condition: expression (logical_operator expression)*
     '''
-    return nodes.LogicalExpression(t)
+    return nodes.Condition(t)
 
 def d_logical_operator(t):
     ''' logical_operator: 'is'

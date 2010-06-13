@@ -96,7 +96,7 @@ class If(Node):
         self.children['block'] = block
         self.children['else_block'] = else_block
 
-class LogicalExpression(Node):
+class Condition(Node):
     def __init__(self, nodes):
         Node.__init__(self)
         self.children['nodes'] = nodes
