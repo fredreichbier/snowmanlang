@@ -33,7 +33,8 @@ class Testcase(unittest.TestCase, object):
         generated_ast = self.parse(code)
         self.assert_(
             is_same_ast(generated_ast, ast_),
-            'The parser generated\n\nbut you told me it should be\n\n'.join(_prettyasts())
+            'The parser generated\n\n%s\n\nbut you told me it should be\n\n%s' \
+                % tuple(_prettyasts())
         )
 
     def parse(self, code):

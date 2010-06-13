@@ -103,7 +103,7 @@ class LogicalExpression(Node):
         print "CHILDREN", nodes
 
     def __repr__(self):
-        return ''.join((
+        return '(%s)' % ''.join((
             ('(' if self.eval_first else ''),
             ' '.join(repr(expr) for expr in self.children['nodes']),
             (')' if self.eval_first else '')
