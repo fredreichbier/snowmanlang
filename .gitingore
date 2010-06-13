@@ -1,0 +1,2 @@
+tests/dparser_mach_*
+*.pyc
