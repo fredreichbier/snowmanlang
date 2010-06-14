@@ -1,6 +1,5 @@
 from dparser import Parser
 from itertools import starmap
-
 import nodes, preprocessor, operators
 
 def d_program(t):
@@ -36,31 +35,29 @@ def d_assignment(t):
 
 def d_if_statement(t):
     ''' if_statemenet: 'if' expression ':' block ('else:' block)? '''
-    return nodes.If(t[1], t[3], t[4][0] if t[4] else None)
+    return nodes.If(t[1], t[3], t[4][0][1] if t[4] else None)
 
 def d_expression(t):
-    ''' expression: '('? _expression ')'? '''
+    ''' expression: literal
+                  | identifier
+                  | assignment
+                  | function
+                  | call
+                  | condition
+                  | '(' expression ')'
+    '''
     if len(t) == 1:
+        # no parenthesis
         return t[0]
     else:
-        expr = t[1]
-        expr.eval_first = True
-        return expr
-
-def d__expression(t):
-    ''' _expression: literal
-                   | identifier
-                   | assignment
-                   | function
-                   | call
-                   | condition
-    '''
-    return t[0]
+        assert len(t) == 3
+        return nodes.ExpressionContainer(t[1])
 
 def d_condition(t):
     ''' condition: expression (logical_operator expression)*
     '''
-    return nodes.Condition(t)
+    assert len(t[1]) == 1
+    return nodes.Condition(t[0]).merge_list(t[1])
 
 def d_logical_operator(t):
     ''' logical_operator: 'is'

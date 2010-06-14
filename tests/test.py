@@ -11,7 +11,7 @@ def is_same_ast(ast1, ast2):
             # not the same node types
             return False
         else:
-            return ast1.children == ast2.children
+            return ast1 == ast2
     for ast1_item, ast2_item in izip(ast1, ast2):
         if not is_same_ast(ast1_item, ast2_item):
             return False

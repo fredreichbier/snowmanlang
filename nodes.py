@@ -3,8 +3,6 @@ from gpyconf._internal.dicts import ordereddict
 
 
 class Node(object):
-    eval_first = False
-
     def __init__(self):
         self.children = ordereddict()
 
@@ -15,8 +13,20 @@ class Node(object):
                             self.children.iteritems()])[1:-1]
         )
 
+    def __eq__(self, other):
+        return dict.__eq__(self.children, other.children)
+
 class Expression(Node):
     pass
+
+class ExpressionContainer(Expression):
+    def __init__(self, expr):
+        Node.__init__(self)
+        assert isinstance(expr, Node)
+        self.children['expression'] = expr
+
+    def __repr__(self):
+        return '(%s)' % self.children['expression']
 
 class Declaration(Expression):
     def __init__(self, name, type):
@@ -97,14 +107,20 @@ class If(Node):
         self.children['else_block'] = else_block
 
 class Condition(Node):
-    def __init__(self, nodes):
+    def __init__(self, *nodes):
         Node.__init__(self)
-        self.children['nodes'] = nodes
-        print "CHILDREN", nodes
+        self.children['nodes'] = list(nodes)
 
     def __repr__(self):
-        return '(%s)' % ''.join((
-            ('(' if self.eval_first else ''),
-            ' '.join(repr(expr) for expr in self.children['nodes']),
-            (')' if self.eval_first else '')
-        ))
+        return '<%s>' % repr(self.children['nodes'])[1:-1]
+
+    def merge_list(self, other):
+        assert isinstance(other, list)
+        for op, expr in other:
+            self.children['nodes'].append(op)
+            if isinstance(expr, Condition):
+                # further recursion detected. *aufloes*
+                self.children['nodes'].extend(expr.children['nodes'])
+            else:
+                self.children['nodes'].append(expr)
+        return self
