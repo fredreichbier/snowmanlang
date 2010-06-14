@@ -1,2 +1,2 @@
-tests/dparser_mach_*
+tests/d_parser_mach_*
 *.pyc
