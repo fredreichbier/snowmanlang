@@ -9,7 +9,7 @@ _ = Identifier
 class FunctionTestcase(Testcase):
     def test_definition(self):
         self.assert_generates_ast('''
-            foo as Function <- String(a as Int, b as Float, c as Bool, d as Bool, e as Bool, f as Bool):
+            foo as Function(a as Int, b as Float, c as Bool, d as Bool, e as Bool, f as Bool) -> String:
                 if a:
                     return a
                 if c and e and (d or e) or (f):
@@ -17,9 +17,9 @@ class FunctionTestcase(Testcase):
                 else:
                     return b
             ''',
-            [Definition(
-                Declaration(_('foo'), _('Function')),
-                Function(
+            [Function(
+                _('foo'),
+                FunctionHeader(
                     _('String'),
                     [
                         Declaration(_('a'), _('Int')),
@@ -28,27 +28,85 @@ class FunctionTestcase(Testcase):
                         Declaration(_('d'), _('Bool')),
                         Declaration(_('e'), _('Bool')),
                         Declaration(_('f'), _('Bool'))
-                    ],
-                    Block([
-                        If(
-                            _('a'),
-                            Block([Return(_('a'))])
+                    ]
+                ),
+                Block([
+                    If(
+                        Condition(_('a')),
+                        Block([Return(_('a'))])
+                    ),
+                    If(
+                        Condition(
+                            _('c'), OP.AND,
+                            _('e'), OP.AND,
+                            ExpressionContainer(Condition(_('d'), OP.OR, _('e'))),
+                            OP.OR,
+                            ExpressionContainer(_('f'))
                         ),
-                        If(
-                            Condition(
-                                _('c'), OP.AND,
-                                _('e'), OP.AND,
-                                ExpressionContainer(Condition(_('d'), OP.OR, _('e'))),
-                                OP.OR,
-                                ExpressionContainer(_('f'))
-                            ),
-                            Block([Return(_('a'))]),
-                            Block([Return(_('b'))])
-                        )
-                    ])
-                )
+                        Block([Return(_('a'))]),
+                        Block([Return(_('b'))])
+                    )
+                ])
             )]
         )
 
+    def test_recursion(self):
+        self.assert_generates_ast('''
+            bear as Function(emma as Heifer, bertram as Bull) -> Calf:
+                return new(Calf)
+
+            bear_n as Function(n as Int, emma as Heifer, bertram as Bull):
+                if not n:
+                    return
+                else:
+                    bear(eve, adam)
+                    return bear_n(n-1)
+        ''',
+        [
+            Function(
+                _('bear'),
+                FunctionHeader(
+                    _('Calf'),
+                    [
+                        Declaration(_('emma'), _('Heifer')),
+                        Declaration(_('bertram'), _('Bull'))
+                    ],
+                ),
+                Block([Return(Call(_('new'), [_('Calf')]))])
+            ),
+            Function(
+                _('bear_n'),
+                FunctionHeader(
+                    None,
+                        [
+                            Declaration(_('n'), _('Int')),
+                            Declaration(_('emma'), _('Heifer')),
+                            Declaration(_('bertram'), _('Bull'))
+                        ],
+                    ),
+                    Block([
+                        If(
+                            Condition(OP.NOT, _('n')),
+                            Block([Return(None)]),
+                            Block([
+                                Call(_('bear'), [_('eve'), _('adam')]),
+                                Return(
+                                    Call(
+                                        _('bear_n'),
+                                        [MathExpression(_('n'), OP.SUBTRACT, Number(1))]
+                                    )
+                                )
+                            ])
+                        )
+                    ])
+            )
+        ])
+
+
 if __name__ == '__main__':
-    unittest.main()
+    import sys
+    if '-v' in sys.argv:
+        import cProfile as prof
+        prof.run('unittest.main()')
+    else:
+        unittest.main()
