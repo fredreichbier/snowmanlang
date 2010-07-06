@@ -69,6 +69,35 @@ class MathsTestCase(Testcase):
             )
         ])
 
+    def test_with_vars_and_calls(self):
+        self.assert_generates_ast('''
+            a as Int = 5 ** 0.7
+            b as Float = 0.2 * sqrt(2) * a / blah(a*sqrt(2))
+            ''',
+            [
+                Definition(
+                    Declaration(_('a'), _('Int')),
+                    MathExpression(Integer(5), OP.POW, Float(0.7))
+                ),
+                Definition(
+                    Declaration(_('b'), _('Float')),
+                    MathExpression(
+                        Float(0.2),
+                        OP.MULTIPLY,
+                        Call(_('sqrt'), [Integer(2)]),
+                        OP.MULTIPLY,
+                        _('a'),
+                        OP.DIVIDE,
+                        Call(_('blah'),
+                             [MathExpression(
+                                 _('a'),
+                                 OP.MULTIPLY,
+                                Call(_('sqrt'), [Integer(2)])
+                             )]
+                        )
+                    )
+                )
+            ])
 
 
 if __name__ == '__main__':
