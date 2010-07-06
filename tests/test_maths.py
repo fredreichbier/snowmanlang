@@ -10,7 +10,7 @@ class MathsTestCase(Testcase):
             b = 10 / 5.678
             b = 5 * 5 + 1
             b = 5 * 3 + (2 * 7)
-            7 + (3 * (2 + 1) / 5 * 7 * (8/9)) - 9 * (5 - 3)
+            7 + (3 ^ (2 + 1) / 5 ** 7 * (8/9)) - 9 * (5 - 3)
         ''',
         [
             Definition(
@@ -46,13 +46,13 @@ class MathsTestCase(Testcase):
                 ExpressionContainer(
                     MathExpression(
                         Integer(3),
-                        OP.MULTIPLY,
+                        OP.POW,
                         ExpressionContainer(
                             MathExpression(Integer(2), OP.ADD, Integer(1))
                         ),
                         OP.DIVIDE,
                         Integer(5),
-                        OP.MULTIPLY,
+                        OP.POW,
                         Integer(7),
                         OP.MULTIPLY,
                         ExpressionContainer(
