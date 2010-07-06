@@ -59,8 +59,22 @@ def d_string(t):
     return nodes.String(t[0].decode('string-escape')[1:-1])
 
 def d_number(t):
-    r''' number: "[0-9]+" '''
-    return nodes.Number(int(t[0]))
+    r''' number: "[0-9][0-9_\.]*" '''
+    number = t[0]
+    first_dot = number.find('.')
+    if first_dot != -1:
+        # at least one dot. this is a float
+        node_cls = nodes.Float
+        second_dot = number.find('.', first_dot+1)
+        if second_dot != -1:
+            # two dots detected
+            raise SyntaxError(
+                number[:second_dot] + '[syntax error]' + number[second_dot:]
+            )
+    else:
+        # no dots. this is an integer
+        node_cls = nodes.Integer
+    return node_cls(node_cls._type(number.replace('_', '')))
 
 def d_math_expression(t):
     ''' math_expression: expression (math_operator expression)+ '''

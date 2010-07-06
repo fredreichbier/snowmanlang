@@ -1,10 +1,6 @@
 import unittest
-from test import Testcase
-
+from test import Testcase, _, OP
 from nodes import *
-from operators import OP
-
-_ = Identifier
 
 class FunctionTestcase(Testcase):
     def test_definition(self):

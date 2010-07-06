@@ -2,8 +2,9 @@ import unittest
 import pprint
 from itertools import izip
 
-from nodes import Node
+from nodes import Node, Identifier as _
 from parser import parse
+from operators import OP
 
 def is_same_ast(ast1, ast2):
     if isinstance(ast1, Node):

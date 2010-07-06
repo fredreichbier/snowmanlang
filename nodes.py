@@ -51,6 +51,12 @@ class String(Literal):
 class Number(Literal):
     pass
 
+class Integer(Number):
+    _type = int
+
+class Float(Number):
+    _type = float
+
 
 class Assignment(Expression):
     def __init__(self, name, value):
