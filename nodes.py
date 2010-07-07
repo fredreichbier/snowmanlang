@@ -39,6 +39,15 @@ class Identifier(Expression):
     def __repr__(self):
         return '`%s`' % repr(self.children['name'])[1:-1]
 
+class ObjectMember(Expression):
+    def __init__(self, obj, member):
+        Expression.__init__(self)
+        self.children['object'] = obj
+        self.children['member'] = member
+
+    def __repr___(self):
+        return '`%s.%s`' % (self.children['object'], self.children['member'])
+
 
 class Literal(Expression):
     def __init__(self, value):
@@ -147,9 +156,10 @@ class Return(Statement):
         self.children['expr'] = expr
 
 class ObjectTypeDeclaration(Statement):
-    def __init__(self, name, decl_block):
+    def __init__(self, name, parent_type, decl_block):
         Statement.__init__(self)
         self.children['name'] = name
+        self.children['parent_type'] = parent_type
         self.children['decl_block'] = decl_block
 
 class If(Statement):

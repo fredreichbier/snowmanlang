@@ -19,11 +19,8 @@ def is_same_ast(ast1, ast2):
     return True
 
 class Testcase(unittest.TestCase, object):
-    def setUp(self):
-        self.setup()
-
-    def setup(self):
-        pass
+    setup = unittest.TestCase.setUp
+    assert_equal = unittest.TestCase.assertEqual
 
     def assert_generates_ast(self, code, ast_):
         def _prettyasts(_cache=[]):
@@ -37,6 +34,7 @@ class Testcase(unittest.TestCase, object):
             'The parser generated\n\n%s\n\nbut you told me it should be\n\n%s' \
                 % tuple(_prettyasts())
         )
+        return ast_
 
     def parse(self, code):
         if code[0] == '\n':

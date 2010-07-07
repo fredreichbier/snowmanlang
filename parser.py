@@ -25,7 +25,7 @@ def d_statement(t):
 # Expressions.
 def d_expression(t):
     ''' expression: literal
-                  | identifier
+                  | variable
                   | assignment
                   | call
                   | function_header
@@ -40,9 +40,17 @@ def d_expression(t):
         assert len(t) == 3
         return nodes.ExpressionContainer(t[1])
 
+def d_variable(t):
+    r''' variable: identifier | member '''
+    return t[0]
+
 def d_identifier(t):
     r''' identifier: "[a-zA-Z_][a-zA-Z0-9_]*" '''
     return nodes.Identifier(t[0])
+
+def d_member(t):
+    r''' member: identifier '.' identifier '''
+    return nodes.ObjectMember(t[0], t[2])
 
 def d_declaration(t):
     r''' declaration: identifier 'as' identifier '''
@@ -122,15 +130,15 @@ def d_type_declaration(t):
     return t[0]
 
 def d_object_type_declaration(t):
-    ''' object_type_declaration: identifier '<-' 'Object' ':' declaration_block '''
-    return nodes.ObjectTypeDeclaration(t[0], t[4])
+    ''' object_type_declaration: identifier '<-' identifier ':' declaration_block '''
+    return nodes.ObjectTypeDeclaration(t[0], t[2], t[4])
 
 def d_declaration_block(t):
     ''' declaration_block: '{' declaration* '}' '''
     return nodes.DeclarationBlock(t[1])
 
 def d_call(t):
-    ''' call: identifier '(' argument_list? ')' '''
+    ''' call: variable '(' argument_list? ')' '''
     return nodes.Call(t[0], t[2][0] if t[2] else [])
 
 def d_function_definition(t):
@@ -189,7 +197,7 @@ def d_definition(t):
     return nodes.Definition(t[0], t[2])
 
 def d_assignment(t):
-    ''' assignment: identifier '=' expression '''
+    ''' assignment: variable '=' expression '''
     return nodes.Assignment(t[0], t[2])
 
 def d_if_statement(t):

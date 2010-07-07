@@ -100,9 +100,4 @@ class FunctionTestcase(Testcase):
 
 
 if __name__ == '__main__':
-    import sys
-    if '-v' in sys.argv:
-        import cProfile as prof
-        prof.run('unittest.main()')
-    else:
-        unittest.main()
+    unittest.main()
