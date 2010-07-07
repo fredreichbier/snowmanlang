@@ -1,20 +1,10 @@
 from itertools import count
 
-class _OP(object):
-    def __init__(self):
-        self._symbols = dict()
+class _OP(dict):
+    class _str(str): pass
+    __missing__ = lambda self, key: self._str(key)
+    __getattr__ = dict.__getitem__
 
-    def __getattr__(self, symbol_):
-        symbol = self._symbols.get(symbol_)
-        if symbol is None:
-            self._symbols[symbol_] = symbol = self._make_symbol(symbol_)
-        return symbol
-
-    def _make_symbol(self, symbol):
-        class _symbol(object):
-            def __repr__(self):
-                return symbol
-        return _symbol()
 OP = _OP()
 
 OPERATORS = {
