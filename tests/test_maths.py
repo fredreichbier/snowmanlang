@@ -1,5 +1,5 @@
 import unittest
-from test import Testcase, _, OP
+from test import Testcase, _, _op
 from nodes import *
 
 class MathsTestCase(Testcase):
@@ -15,56 +15,56 @@ class MathsTestCase(Testcase):
         [
             Definition(
                 Declaration(_('a'), _('Int')),
-                MathExpression(Integer(5), OP.MULTIPLY, Integer(8)),
+                MathExpression(Integer(5), _op('*'), Integer(8)),
             ),
             Definition(
                 Declaration(_('b'), _('Float')),
-                MathExpression(Integer(10), OP.MULTIPLY, Float(3.14))
+                MathExpression(Integer(10), _op('*'), Float(3.14))
             ),
             Assignment(_('b'),
-                MathExpression(Integer(10), OP.DIVIDE, Float(5.678))
+                MathExpression(Integer(10), _op('/'), Float(5.678))
             ),
             Assignment(_('b'),
-                MathExpression(Integer(5), OP.MULTIPLY, Integer(5), OP.ADD, Integer(1))
+                MathExpression(Integer(5), _op('*'), Integer(5), _op('+'), Integer(1))
             ),
             Assignment(_('b'),
                 MathExpression(
                     Integer(5),
-                    OP.MULTIPLY,
+                    _op('*'),
                     Integer(3),
-                    OP.ADD,
+                    _op('+'),
                     ExpressionContainer(
                         MathExpression(
-                            Integer(2), OP.MULTIPLY, Integer(7)
+                            Integer(2), _op('*'), Integer(7)
                         )
                     )
                 )
             ),
             MathExpression(
                 Integer(7),
-                OP.ADD,
+                _op('+'),
                 ExpressionContainer(
                     MathExpression(
                         Integer(3),
-                        OP.POW,
+                        _op('**'),
                         ExpressionContainer(
-                            MathExpression(Integer(2), OP.ADD, Integer(1))
+                            MathExpression(Integer(2), _op('+'), Integer(1))
                         ),
-                        OP.DIVIDE,
+                        _op('/'),
                         Integer(5),
-                        OP.POW,
+                        _op('^'),
                         Integer(7),
-                        OP.MULTIPLY,
+                        _op('*'),
                         ExpressionContainer(
-                            MathExpression(Integer(8), OP.DIVIDE, Integer(9))
+                            MathExpression(Integer(8), _op('/'), Integer(9))
                         ),
                     )
                 ),
-                OP.SUBTRACT,
+                _op('-'),
                 Integer(9),
-                OP.MULTIPLY,
+                _op('*'),
                 ExpressionContainer(
-                    MathExpression(Integer(5), OP.SUBTRACT, Integer(3))
+                    MathExpression(Integer(5), _op('-'), Integer(3))
                 )
             )
         ])
@@ -77,21 +77,21 @@ class MathsTestCase(Testcase):
             [
                 Definition(
                     Declaration(_('a'), _('Int')),
-                    MathExpression(Integer(5), OP.POW, Float(0.7))
+                    MathExpression(Integer(5), _op('**'), Float(0.7))
                 ),
                 Definition(
                     Declaration(_('b'), _('Float')),
                     MathExpression(
                         Float(0.2),
-                        OP.MULTIPLY,
+                        _op('*'),
                         Call(_('sqrt'), [Integer(2)]),
-                        OP.MULTIPLY,
+                        _op('*'),
                         _('a'),
-                        OP.DIVIDE,
+                        _op('/'),
                         Call(_('blah'),
                              [MathExpression(
                                  _('a'),
-                                 OP.MULTIPLY,
+                                 _op('*'),
                                 Call(_('sqrt'), [Integer(2)])
                              )]
                         )

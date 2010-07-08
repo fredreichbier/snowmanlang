@@ -1,25 +1,36 @@
 import pprint
+import operators
 from utils import ordereddict
 
 
 class Node(object):
-    def __init__(self):
-        self.children = ordereddict()
+    abstract = True
 
-    def __repr__(self):
-        return '<%r \n%s>' % (
-            type(self).__name__,
-            self.children
-        )
+    def __init__(self):
+        if self.__class__.__dict__.get('abstract'):
+            raise TypeError("Cannot instantiate abstract class '%s'" % type(self).__name__)
+        self.children = ordereddict()
 
     def __eq__(self, other):
         if not isinstance(other, Node):
             return False
         return dict.__eq__(self.children, other.children)
 
+class Operator(Node):
+    def __init__(self, op):
+        Node.__init__(self)
+        self.children['op'] = op
+
+    def __repr__(self):
+        return '<Operator \'%s\'>' % self.children['op']
+
+    @classmethod
+    def for_symbol(cls, symbol):
+        return cls(operators.for_symbol(symbol))
+
 # Expressions.
 class Expression(Node):
-    pass
+    abstract = True
 
 class ExpressionContainer(Expression):
     def __init__(self, expr):
@@ -37,7 +48,7 @@ class Identifier(Expression):
         self.children['name'] = name
 
     def __repr__(self):
-        return '`%s`' % repr(self.children['name'])[1:-1]
+        return '<Identifier %s>' % self.children['name']
 
 class ObjectMember(Expression):
     def __init__(self, obj, member):
@@ -45,20 +56,22 @@ class ObjectMember(Expression):
         self.children['object'] = obj
         self.children['member'] = member
 
-    def __repr___(self):
-        return '`%s.%s`' % (self.children['object'], self.children['member'])
-
 
 class Literal(Expression):
+    abstract = True
+
     def __init__(self, value):
         Expression.__init__(self)
         self.children['value'] = value
+
+    def __repr__(self):
+        return '<%s %s>' % (self.__class__.__name__, self.children['value'])
 
 class String(Literal):
     pass
 
 class Number(Literal):
-    pass
+    abstract = True
 
 class Integer(Number):
     _type = int
@@ -82,17 +95,22 @@ class FunctionHeader(Expression):
         self.children['signature'] = signature
 
 class Call(Expression):
-    def __init__(self, name, argument_list):
+    def __init__(self, function_name, argument_list):
         Expression.__init__(self)
         assert isinstance(argument_list, list), argument_list
-        self.children['name'] = name
+        self.children['function_name'] = function_name
         self.children['argument_list'] = argument_list
 
 
 class FlatListExpression(Expression):
+    abstract = True
+
     def __init__(self, *nodes):
         Expression.__init__(self)
         self.children['nodes'] = list(nodes)
+
+    def __repr__(self):
+        return '<%s %s>' % (self.__class__.__name__, self.children['nodes'])
 
     def merge_list(self, other):
         assert isinstance(other, list)
@@ -109,9 +127,6 @@ class Condition(FlatListExpression):
     def __init__(self, *nodes):
         FlatListExpression.__init__(self, *nodes)
 
-    def __repr__(self):
-        return '<%s>' % repr(self.children['nodes'])[1:-1]
-
 class MathExpression(FlatListExpression):
     def __init__(self, *nodes):
         FlatListExpression.__init__(self, *nodes)
@@ -119,7 +134,7 @@ class MathExpression(FlatListExpression):
 
 # Statements.
 class Statement(Node):
-    pass
+    abstract = True
 
 class Declaration(Statement):
     def __init__(self, name, type):

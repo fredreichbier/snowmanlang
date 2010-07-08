@@ -1,4 +1,4 @@
-int main(int argc, char* argv) {print("Hello, World!");
+Int main(Int argc, String argv) {print("Hello, World!");
 print("How are you today?");
 printf("You gave me '%d' arguments", argc);
-return 42;}
+return 41 + 1;}

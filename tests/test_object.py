@@ -1,5 +1,5 @@
 import unittest
-from test import Testcase, _, OP
+from test import Testcase, _
 from nodes import *
 
 class ObjectTestcase(Testcase):

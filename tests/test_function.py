@@ -1,5 +1,5 @@
 import unittest
-from test import Testcase, _, OP
+from test import Testcase, _, _op
 from nodes import *
 
 class FunctionTestcase(Testcase):
@@ -33,10 +33,10 @@ class FunctionTestcase(Testcase):
                     ),
                     If(
                         Condition(
-                            _('c'), OP.AND,
-                            _('e'), OP.AND,
-                            ExpressionContainer(Condition(_('d'), OP.OR, _('e'))),
-                            OP.OR,
+                            _('c'), _op('and'),
+                            _('e'), _op('and'),
+                            ExpressionContainer(Condition(_('d'), _op('or'), _('e'))),
+                            _op('or'),
                             ExpressionContainer(_('f'))
                         ),
                         Block([Return(_('a'))]),
@@ -82,14 +82,14 @@ class FunctionTestcase(Testcase):
                     ),
                     Block([
                         If(
-                            Condition(OP.NOT, _('n')),
+                            Condition(_op('not'), _('n')),
                             Block([Return(None)]),
                             Block([
                                 Call(_('bear'), [_('eve'), _('adam')]),
                                 Return(
                                     Call(
                                         _('bear_n'),
-                                        [MathExpression(_('n'), OP.SUBTRACT, Number(1))]
+                                        [MathExpression(_('n'), _op('-'), Integer(1))]
                                     )
                                 )
                             ])

@@ -2,17 +2,23 @@ import unittest
 import pprint
 from itertools import izip
 
-from nodes import Node, Identifier as _
+from nodes import Node, Identifier as _, Operator
 from parser import parse
-from operators import OP
+
+_op = Operator.for_symbol
 
 def is_same_ast(ast1, ast2):
     if isinstance(ast1, Node):
-        if not isinstance(ast2, type(ast1)):
-            # not the same node types
-            return False
-        else:
-            return ast1 == ast2
+        def test_eq():
+            if not type(ast2) == type(ast1):
+                # not the same node types
+                return False
+            else:
+                return ast1 == ast2
+        res = test_eq()
+        if not res:
+            print ast1, ast1.children, '!=\n', ast2, ast2.children
+        return res
     for ast1_item, ast2_item in izip(ast1, ast2):
         if not is_same_ast(ast1_item, ast2_item):
             return False

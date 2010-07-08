@@ -1,6 +1,6 @@
 from dparser import Parser
 from itertools import starmap
-import nodes, preprocessor, operators
+import nodes, preprocessor
 
 def d_program(t):
     ''' program: stuff '''
@@ -96,14 +96,14 @@ def d_math_operator(t):
                      | '^'
                      | '**'
     '''
-    return operators.for_symbol(t[0])
+    return nodes.Operator.for_symbol(t[0])
 
 def d_condition(t):
     ''' condition: 'not'? expression (logical_operator expression)* '''
     assert len(t) == 3
     if t[0]:
         return nodes.Condition(
-            operators.for_symbol(t[0][0]),
+            nodes.Operator.for_symbol(t[0][0]),
             t[1]
         ).merge_list(t[2])
     else:
@@ -122,7 +122,7 @@ def d_logical_operator(t):
                         | '|'
                         | 'xor'
     '''
-    return operators.for_symbol(t[0])
+    return nodes.Operator.for_symbol(t[0])
 
 # Statements.
 def d_type_declaration(t):
@@ -204,5 +204,7 @@ def d_if_statement(t):
     ''' if_statemenet: 'if' condition ':' block ('else:' block)? '''
     return nodes.If(t[1], t[3], t[4][0][1] if t[4] else None)
 
-def parse(s):
-    return Parser().parse(preprocessor.preprocess(s)).getStructure()
+def parse(s, parser=None):
+    if parser is None:
+        parser = Parser()
+    return parser.parse(preprocessor.preprocess(s)).getStructure()
