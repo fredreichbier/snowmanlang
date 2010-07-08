@@ -48,12 +48,19 @@ def d_identifier(t):
     r''' identifier: "[a-zA-Z_][a-zA-Z0-9_]*" '''
     return nodes.Identifier(t[0])
 
+def d_type_identifier(t):
+    r''' type_identifier: identifier '*'? '''
+    return nodes.TypeIdentifier(
+        t[0].children['name'],
+        len(t[1]) == 1 # 1 = '*' given
+    )
+
 def d_member(t):
     r''' member: identifier '.' identifier '''
     return nodes.ObjectMember(t[0], t[2])
 
 def d_declaration(t):
-    r''' declaration: identifier 'as' identifier '''
+    r''' declaration: identifier 'as' type_identifier '''
     return nodes.Declaration(t[0], t[2])
 
 def d_literal(t):
@@ -130,7 +137,7 @@ def d_type_declaration(t):
     return t[0]
 
 def d_object_type_declaration(t):
-    ''' object_type_declaration: identifier '<-' identifier ':' declaration_block '''
+    ''' object_type_declaration: type_identifier '<-' type_identifier ':' declaration_block '''
     return nodes.ObjectTypeDeclaration(t[0], t[2], t[4])
 
 def d_declaration_block(t):
@@ -146,7 +153,7 @@ def d_function_definition(t):
     return nodes.Function(t[0], t[2], t[4])
 
 def d_function_header(t):
-    ''' function_header: 'Function(' signature? ')' ('->' identifier)?'''
+    ''' function_header: 'Function(' signature? ')' ('->' type_identifier)?'''
     # very ugly find-out-whether-there-are-signature-and-or-return-type code.
     tokens = iter(t)
     tokens.next() # pass left parent
@@ -207,4 +214,4 @@ def d_if_statement(t):
 def parse(s, parser=None):
     if parser is None:
         parser = Parser()
-    return parser.parse(preprocessor.preprocess(s)).getStructure()
+    return parser.parse(preprocessor.preprocess(s)).structure

@@ -1,5 +1,5 @@
 import unittest
-from test import Testcase, _, _op
+from test import Testcase, _, _op, _t
 from nodes import *
 
 class MathsTestCase(Testcase):
@@ -14,11 +14,11 @@ class MathsTestCase(Testcase):
         ''',
         [
             Definition(
-                Declaration(_('a'), _('Int')),
+                Declaration(_('a'), _t('Int')),
                 MathExpression(Integer(5), _op('*'), Integer(8)),
             ),
             Definition(
-                Declaration(_('b'), _('Float')),
+                Declaration(_('b'), _t('Float')),
                 MathExpression(Integer(10), _op('*'), Float(3.14))
             ),
             Assignment(_('b'),
@@ -76,11 +76,11 @@ class MathsTestCase(Testcase):
             ''',
             [
                 Definition(
-                    Declaration(_('a'), _('Int')),
+                    Declaration(_('a'), _t('Int')),
                     MathExpression(Integer(5), _op('**'), Float(0.7))
                 ),
                 Definition(
-                    Declaration(_('b'), _('Float')),
+                    Declaration(_('b'), _t('Float')),
                     MathExpression(
                         Float(0.2),
                         _op('*'),

@@ -2,7 +2,7 @@ import unittest
 import pprint
 from itertools import izip
 
-from nodes import Node, Identifier as _, Operator
+from nodes import Node, Identifier as _, Operator, TypeIdentifier as _t
 from parser import parse
 
 _op = Operator.for_symbol

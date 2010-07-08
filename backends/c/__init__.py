@@ -13,6 +13,9 @@ def fmt(string, *args, **kwargs):
         assert isinstance(value, str), type(value)
     return string.format(*args, **kwargs)
 
+def indent_lines(iterator):
+    return ''.join('\n    ' + line for line in iterator)
+
 class CGeneratorBackend(Backend):
     fileext = '.c'
 
@@ -26,6 +29,7 @@ class CGeneratorBackend(Backend):
         try:
             for chunk in Backend.translate_ast(self, ast):
                 self._buf.write(chunk)
+                self._buf.write('\n')
             if as_string:
                 return self._buf.getvalue()
             else:
@@ -43,13 +47,14 @@ class CGeneratorBackend(Backend):
 
     def visit_TypeIdentifier(self, node):
         name = node.children['name']
-        return C_BUILTIN_TYPES.get(name, name)
+        ptr = node.children['pointer'] and '*' or ''
+        return C_BUILTIN_TYPES.get(name, name) + ptr
 
     def visit_Operator(self, node):
         return node.children['op'].symbol
 
     def visit_Integer(self, node):
-        return node.children['value']
+        return str(node.children['value'])
 
     visit_Float = visit_Integer
 
@@ -62,8 +67,12 @@ class CGeneratorBackend(Backend):
             name=self.visit_node(node.children['name'])
         )
 
+    def visit_Definition(self, node):
+        return '%s = %s' % tuple(map(self.visit_node, node.children.itervalues()))
+
     def visit_Block(self, node):
-        return '{' + '\n'.join(map(self.visit_statement, node.children['statements'])) + '}'
+        stmts = map(self.visit_statement, node.children['statements'])
+        return '\n{' + indent_lines(stmts) + '\n}'
 
     def visit_Function(self, node):
         header = node.children['header']
@@ -79,9 +88,11 @@ class CGeneratorBackend(Backend):
             'return_type' : return_type,
             'signature'   : ', '.join(signature)
         }
-        return fmt('{return_type} {name}({signature}) {body}', **dct)
+        return fmt('{return_type} {name}({signature}){body}', **dct)
 
     def visit_Return(self, node):
+        if not node.children['expr']:
+            return 'return'
         return 'return %s' % self.visit_node(node.children['expr'])
 
     def visit_Call(self, node):
@@ -94,3 +105,9 @@ class CGeneratorBackend(Backend):
     def visit_MathExpression(self, node):
         return ' '.join(map(str, self.translate_child(node, 'nodes')))
 
+    def visit_ObjectTypeDeclaration(self, node):
+        return 'typedef struct {%s\n} %s;\n' % tuple(
+            map(self.visit_node, reversed(node.children.values())))
+
+    def visit_DeclarationBlock(self, node):
+        return indent_lines(map(self.visit_statement, node.children['decls']))

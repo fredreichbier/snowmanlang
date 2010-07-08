@@ -16,13 +16,16 @@ class Node(object):
             return False
         return dict.__eq__(self.children, other.children)
 
+    def __repr__(self):
+        return '<%s %s>' % (
+            self.__class__.__name__,
+            '\n'.join('%s:%s' % (k, v) for k, v in self.children.iteritems())
+        )
+
 class Operator(Node):
     def __init__(self, op):
         Node.__init__(self)
         self.children['op'] = op
-
-    def __repr__(self):
-        return '<Operator \'%s\'>' % self.children['op']
 
     @classmethod
     def for_symbol(cls, symbol):
@@ -38,17 +41,16 @@ class ExpressionContainer(Expression):
         assert isinstance(expr, Node)
         self.children['expression'] = expr
 
-    def __repr__(self):
-        return '(%s)' % self.children['expression']
-
 
 class Identifier(Expression):
     def __init__(self, name):
         Expression.__init__(self)
         self.children['name'] = name
 
-    def __repr__(self):
-        return '<Identifier %s>' % self.children['name']
+class TypeIdentifier(Identifier):
+    def __init__(self, name, pointer=False):
+        Identifier.__init__(self, name)
+        self.children['pointer'] = pointer
 
 class ObjectMember(Expression):
     def __init__(self, obj, member):
@@ -63,9 +65,6 @@ class Literal(Expression):
     def __init__(self, value):
         Expression.__init__(self)
         self.children['value'] = value
-
-    def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, self.children['value'])
 
 class String(Literal):
     pass
@@ -108,9 +107,6 @@ class FlatListExpression(Expression):
     def __init__(self, *nodes):
         Expression.__init__(self)
         self.children['nodes'] = list(nodes)
-
-    def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, self.children['nodes'])
 
     def merge_list(self, other):
         assert isinstance(other, list)
@@ -174,7 +170,13 @@ class ObjectTypeDeclaration(Statement):
     def __init__(self, name, parent_type, decl_block):
         Statement.__init__(self)
         self.children['name'] = name
-        self.children['parent_type'] = parent_type
+        #self.children['parent_type'] = parent_type
+        # TODO: quickhack
+        if parent_type.children['name'] != 'Object':
+            parent_type.children['pointer'] = True
+            decl_block.children['decls'].insert(0,
+                Declaration(Identifier('super'), parent_type)
+            )
         self.children['decl_block'] = decl_block
 
 class If(Statement):

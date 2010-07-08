@@ -1,5 +1,14 @@
-main as Function(argc as Int, argv as String) -> Int:
+Position <- Object:
+    x as Int*
+    y as Int
+
+_3DPosition <- Position:
+    z as Int
+
+main as Function(argc as Int, argv as String*) -> Int:
     print("Hello, World!")
     print("How are you today?")
     printf("You gave me '%d' arguments", argc)
-    return 41 + 1
+    pos as Position* = malloc(sizeof(Position))
+    _3dpos as _3DPosition* = malloc(sizeof(_3DPosition))
+    return

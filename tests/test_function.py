@@ -1,5 +1,5 @@
 import unittest
-from test import Testcase, _, _op
+from test import Testcase, _, _op, _t
 from nodes import *
 
 class FunctionTestcase(Testcase):
@@ -16,14 +16,14 @@ class FunctionTestcase(Testcase):
             [Function(
                 _('foo'),
                 FunctionHeader(
-                    _('String'),
+                    _t('String'),
                     [
-                        Declaration(_('a'), _('Int')),
-                        Declaration(_('b'), _('Float')),
-                        Declaration(_('c'), _('Bool')),
-                        Declaration(_('d'), _('Bool')),
-                        Declaration(_('e'), _('Bool')),
-                        Declaration(_('f'), _('Bool'))
+                        Declaration(_('a'), _t('Int')),
+                        Declaration(_('b'), _t('Float')),
+                        Declaration(_('c'), _t('Bool')),
+                        Declaration(_('d'), _t('Bool')),
+                        Declaration(_('e'), _t('Bool')),
+                        Declaration(_('f'), _t('Bool'))
                     ]
                 ),
                 Block([
@@ -48,10 +48,10 @@ class FunctionTestcase(Testcase):
 
     def test_recursion(self):
         self.assert_generates_ast('''
-            bear as Function(emma as Heifer, bertram as Bull) -> Calf:
-                return new(Calf)
+            bear as Function(emma as Heifer*, bertram as Bull*) -> Calf*:
+                return malloc(sizeof(Calf))
 
-            bear_n as Function(n as Int, emma as Heifer, bertram as Bull):
+            bear_n as Function(n as Int, emma as Heifer*, bertram as Bull*):
                 if not n:
                     return
                 else:
@@ -62,22 +62,22 @@ class FunctionTestcase(Testcase):
             Function(
                 _('bear'),
                 FunctionHeader(
-                    _('Calf'),
+                    _t('Calf', True),
                     [
-                        Declaration(_('emma'), _('Heifer')),
-                        Declaration(_('bertram'), _('Bull'))
+                        Declaration(_('emma'), _t('Heifer', True)),
+                        Declaration(_('bertram'), _t('Bull', True))
                     ],
                 ),
-                Block([Return(Call(_('new'), [_('Calf')]))])
+                Block([Return(Call(_('malloc'), [Call(_('sizeof'), [_('Calf')])]))])
             ),
             Function(
                 _('bear_n'),
                 FunctionHeader(
                     None,
                         [
-                            Declaration(_('n'), _('Int')),
-                            Declaration(_('emma'), _('Heifer')),
-                            Declaration(_('bertram'), _('Bull'))
+                            Declaration(_('n'), _t('Int')),
+                            Declaration(_('emma'), _t('Heifer', True)),
+                            Declaration(_('bertram'), _t('Bull', True))
                         ],
                     ),
                     Block([

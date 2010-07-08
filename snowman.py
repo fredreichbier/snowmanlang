@@ -33,22 +33,17 @@ def translate_code(*files):
                 result.write(result_buffer)
     else:
         # read input from stdin
-        print backend.translate(parse_code(sys.stdin.read()))
+        print backend.translate_ast(parse_code(sys.stdin.read()))
 
 
 if __name__ == '__main__':
-    def usage(exc):
-        print >> sys.stderr, 'USAGE: %s (--test | --translate files*)' % exc
     args = sys.argv[:]
     this_file = args.pop(0)
+    cmd = 'translate'
     if not args:
-        exit(usage(this_file))
-
-    if args[0].startswith('--'):
+        files = ()
+    elif args[0].startswith('--'):
         cmd = args.pop(0)[2:]
-    else:
-        cmd = 'translate'
-
     exit(
         {'translate' : translate_code, 'test' : run_tests}[cmd](*args)
     )
