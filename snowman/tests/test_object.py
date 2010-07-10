@@ -1,6 +1,6 @@
 import unittest
-from test import Testcase, _, _t
-from nodes import *
+from snowman.tests import Testcase, _, _t
+from snowman.nodes import *
 
 class ObjectTestcase(Testcase):
     def test_declaration(self):

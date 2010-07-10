@@ -4,7 +4,7 @@ typedef struct {
 } Position;
 
 typedef struct {
-    Position* super;
+    Position __super__;
     int z;
 } _3DPosition;
 

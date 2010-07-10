@@ -1,4 +1,4 @@
-from utils import ordereddict
+from snowman.utils import ordereddict
 
 class Backend(object):
     def translate_ast(self, ast):

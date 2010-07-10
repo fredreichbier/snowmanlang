@@ -1,6 +1,6 @@
 import pprint
-import operators
-from utils import ordereddict
+from snowman import operators
+from snowman.utils import ordereddict
 
 
 class Node(object):
@@ -170,13 +170,10 @@ class ObjectTypeDeclaration(Statement):
     def __init__(self, name, parent_type, decl_block):
         Statement.__init__(self)
         self.children['name'] = name
-        #self.children['parent_type'] = parent_type
-        # TODO: quickhack
         if parent_type.children['name'] != 'Object':
-            parent_type.children['pointer'] = True
-            decl_block.children['decls'].insert(0,
-                Declaration(Identifier('super'), parent_type)
-            )
+            self.children['parent_type'] = parent_type
+        else:
+            self.children['parent_type'] = None
         self.children['decl_block'] = decl_block
 
 class If(Statement):

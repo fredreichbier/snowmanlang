@@ -12,7 +12,7 @@ def run_tests():
                 return return_code
 
 def parse_code(code):
-    import parser
+    from snowman import parser
     if not hasattr(parse_code, '_parser'):
         parse_code._parser = parser.Parser(modules=[parser])
     return parser.parse(code, parse_code._parser)

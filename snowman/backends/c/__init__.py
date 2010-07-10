@@ -1,6 +1,7 @@
 from future_builtins import map
 import cStringIO as stringio
-from .. import Backend
+from snowman.backends import Backend
+from snowman import nodes
 
 C_BUILTIN_TYPES = dict((snow_type, snow_type.lower()) for snow_type in
                        ('Int', 'Float', 'Boolean', 'Double', 'Char'))
@@ -106,8 +107,19 @@ class CGeneratorBackend(Backend):
         return ' '.join(map(str, self.translate_child(node, 'nodes')))
 
     def visit_ObjectTypeDeclaration(self, node):
-        return 'typedef struct {%s\n} %s;\n' % tuple(
-            map(self.visit_node, reversed(node.children.values())))
+        members = []
+        parent = node.children['parent_type']
+        if parent is not None:
+            members.append(self.visit_statement(
+                nodes.Declaration(nodes.Identifier('__super__'), parent)
+            ))
+        members.extend(map(self.visit_statement,
+                           node.children['decl_block'].children['decls']))
+
+        return 'typedef struct {%s\n} %s;\n' % (
+            indent_lines(members),
+            self.visit_node(node.children['name'])
+        )
 
     def visit_DeclarationBlock(self, node):
         return indent_lines(map(self.visit_statement, node.children['decls']))
