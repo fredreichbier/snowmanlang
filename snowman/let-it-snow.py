@@ -14,7 +14,7 @@ def run_tests():
 def parse_code(code):
     from snowman import parser
     if not hasattr(parse_code, '_parser'):
-        parse_code._parser = parser.Parser(modules=[parser])
+        parse_code._parser = parser.Parser(modules=[parser], file_prefix='.dparser_mach_gen')
     return parser.parse(code, parse_code._parser)
 
 def translate_code(*files):

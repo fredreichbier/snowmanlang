@@ -183,3 +183,8 @@ class If(Statement):
         self.children['expr'] = expr
         self.children['block'] = block
         self.children['else_block'] = else_block
+
+class ImportStatement(Statement):
+    def __init__(self, path):
+        Statement.__init__(self)
+        self.children['path'] = path

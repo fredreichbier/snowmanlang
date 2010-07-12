@@ -1,3 +1,4 @@
+import os
 from future_builtins import map
 import cStringIO as stringio
 from snowman.backends import Backend
@@ -123,3 +124,13 @@ class CGeneratorBackend(Backend):
 
     def visit_DeclarationBlock(self, node):
         return indent_lines(map(self.visit_statement, node.children['decls']))
+
+    def visit_ImportStatement(self, node):
+        path = node.children['path']
+        fname, ext = os.path.splitext(path)
+        if not ext:
+            path += '.h'
+        if path.startswith('./'):
+            return '#include "%s"' % path
+        else:
+            return '#include <%s>' % path
