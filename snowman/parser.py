@@ -57,8 +57,8 @@ def d_type_identifier(t):
     )
 
 def d_member(t):
-    r''' member: identifier '.' identifier '''
-    return nodes.ObjectMember(t[0], t[2])
+    r''' member: expression ('.'|'->') identifier '''
+    return nodes.ObjectMember(t[0], t[2], t[1][0] == '->')
 
 def d_declaration(t):
     r''' declaration: identifier 'as' type_identifier '''
@@ -67,8 +67,13 @@ def d_declaration(t):
 def d_literal(t):
     ''' literal: string
                | number
+               | char
     '''
     return t[0]
+
+def d_char(t):
+    ''' char: "'\\\?[a-z A-Z0-9 ]'" '''
+    return nodes.Char(t[0].strip("'"))
 
 def d_string(t):
     r''' string: "\"[^\"]*\"" '''

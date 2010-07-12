@@ -19,16 +19,14 @@ def parse_code(code):
 
 def translate_code(*files):
     import nodes
-    from backends.c import CGeneratorBackend
-    backend = CGeneratorBackend()
-    backend._Statement = nodes.Statement # mmmhh, lecker
+    from backends.c import CGeneratorBackend as backend
 
     if files:
         for source_file in files:
             result_file_name = os.path.splitext(source_file)[0] + backend.fileext
             with open(source_file) as source:
                 ast = parse_code(source.read())
-            result_buffer = backend.translate_ast(ast)
+            result_buffer = backend(ast).translate()
             with open(result_file_name, 'w') as result:
                 result.write(result_buffer)
     else:

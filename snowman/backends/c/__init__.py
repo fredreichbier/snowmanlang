@@ -1,11 +1,13 @@
 import os
 from future_builtins import map
+from itertools import chain
 import cStringIO as stringio
+from types import GeneratorType
 from snowman.backends import Backend
 from snowman import nodes
 
 C_BUILTIN_TYPES = dict((snow_type, snow_type.lower()) for snow_type in
-                       ('Int', 'Float', 'Boolean', 'Double', 'Char'))
+                       ('Int', 'Float', 'Boolean', 'Double', 'Char', 'Void'))
 C_BUILTIN_TYPES['String'] = 'char*'
 
 def fmt(string, *args, **kwargs):
@@ -21,28 +23,37 @@ def indent_lines(iterator):
 class CGeneratorBackend(Backend):
     fileext = '.c'
 
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
+    def __init__(self, ast):
+        Backend.__init__(self, ast)
         self._buf = stringio.StringIO()
 
-    def translate_ast(self, ast, as_string=True):
-        try:
-            for chunk in Backend.translate_ast(self, ast):
-                self._buf.write(chunk)
-                self._buf.write('\n')
-            if as_string:
-                return self._buf.getvalue()
+    def _prepare_translation(self):
+        self._var_type_map = {}
+        self._type_members_map = {}
+
+    def translate(self):
+        def _write_chunk(chunk):
+            self._buf.write(chunk)
+            self._buf.write('\n')
+        for chunk in Backend.translate(self):
+            if isinstance(chunk, GeneratorType):
+                for iteritbaby in map(_write_chunk, chunk):
+                    pass
             else:
-                return self._buf
-        except Exception as exc:
-           self.reset()
-           raise
+                _write_chunk(chunk)
+        return self._buf.getvalue()
 
     def visit_statement(self, node):
-        return self.visit_node(node) + ';'
+        res = self.visit_node(node)
+        if isinstance(node, (nodes.Function, nodes.ImportStatement)):
+            return res
+        if isinstance(res, GeneratorType):
+            res = ';\n'.join(res)
+        return res + ';'
 
+    def visit_Ast(self, ast):
+        for node in ast:
+            yield self.visit_statement(node)
 
     def visit_Identifier(self, node):
         return node.children['name']
@@ -77,6 +88,7 @@ class CGeneratorBackend(Backend):
         return '\n{' + indent_lines(stmts) + '\n}'
 
     def visit_Function(self, node):
+        old_var_type_map, self._var_type_map = self._var_type_map, {}
         header = node.children['header']
         signature = map(self.visit_node, header.children['signature'])
         return_type = header.children['return_type']
@@ -90,6 +102,7 @@ class CGeneratorBackend(Backend):
             'return_type' : return_type,
             'signature'   : ', '.join(signature)
         }
+        self._var_type_map = old_var_type_map
         return fmt('{return_type} {name}({signature}){body}', **dct)
 
     def visit_Return(self, node):
@@ -108,6 +121,7 @@ class CGeneratorBackend(Backend):
         return ' '.join(map(str, self.translate_child(node, 'nodes')))
 
     def visit_ObjectTypeDeclaration(self, node):
+        type_name = self.visit_node(node.children['name'])
         members = []
         parent = node.children['parent_type']
         if parent is not None:
@@ -117,9 +131,12 @@ class CGeneratorBackend(Backend):
         members.extend(map(self.visit_statement,
                            node.children['decl_block'].children['decls']))
 
-        return 'typedef struct {%s\n} %s;\n' % (
-            indent_lines(members),
-            self.visit_node(node.children['name'])
+        self._type_members_map[type_name] = members
+
+        yield 'typedef struct _%s %s' % (type_name, type_name)
+        yield 'struct _%s {%s\n}' % (
+            type_name,
+            indent_lines(members)
         )
 
     def visit_DeclarationBlock(self, node):
@@ -134,3 +151,13 @@ class CGeneratorBackend(Backend):
             return '#include "%s"' % path
         else:
             return '#include <%s>' % path
+
+    def visit_Assignment(self, node):
+        return '%s = %s' % tuple(map(self.visit_node, node.children.itervalues()))
+
+    def visit_ObjectMember(self, node):
+        obj, do_unary, name = node.children.itervalues()
+        return ''.join((self.visit_node(obj), '->' if do_unary else '.', self.visit_node(name)))
+
+    def visit_Char(self, node):
+        return "'%s'" % node.children['value']
