@@ -53,9 +53,10 @@ class TypeIdentifier(Identifier):
         self.children['pointer'] = pointer
 
 class ObjectMember(Expression):
-    def __init__(self, obj, member):
+    def __init__(self, obj, member, do_unary):
         Expression.__init__(self)
         self.children['object'] = obj
+        self.children['do_unary'] = do_unary
         self.children['member'] = member
 
 
@@ -69,6 +70,9 @@ class Literal(Expression):
 class String(Literal):
     pass
 
+class Char(Literal):
+    pass
+
 class Number(Literal):
     abstract = True
 
@@ -80,10 +84,10 @@ class Float(Number):
 
 
 class Assignment(Expression):
-    def __init__(self, name, value):
+    def __init__(self, assignee, rval):
         Expression.__init__(self)
-        self.children['name'] = name
-        self.children['value'] = value
+        self.children['assignee'] = assignee
+        self.children['rval'] = rval
 
 
 class FunctionHeader(Expression):
@@ -183,3 +187,8 @@ class If(Statement):
         self.children['expr'] = expr
         self.children['block'] = block
         self.children['else_block'] = else_block
+
+class ImportStatement(Statement):
+    def __init__(self, path):
+        Statement.__init__(self)
+        self.children['path'] = path

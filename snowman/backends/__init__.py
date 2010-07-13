@@ -1,8 +1,12 @@
 from snowman.utils import ordereddict
 
 class Backend(object):
-    def translate_ast(self, ast):
-        return self.visit_Ast(ast)
+    def __init__(self, ast):
+        self.ast = ast
+
+    def translate(self):
+        self._prepare_translation()
+        return self.visit_Ast(self.ast)
 
     def translate_child(self, node, child_name):
         child = node.children[child_name]
@@ -20,7 +24,7 @@ class Backend(object):
             return getattr(self, 'visit_%s' % type_name)
         except AttributeError:
             raise NotImplementedError(
-                "'visit_%s' is not implemented (tried to visit %s)" 
+                "'visit_%s' is not implemented (tried to visit %s)"
                 % (type_name, node)
             )
 

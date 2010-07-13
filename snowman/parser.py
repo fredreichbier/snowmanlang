@@ -18,7 +18,8 @@ def d_statement(t):
                  | assignment
                  | return_statement
                  | type_declaration
-                 | if_statemenet
+                 | if_statement
+                 | import_statement
     '''
     return t[0]
 
@@ -56,8 +57,8 @@ def d_type_identifier(t):
     )
 
 def d_member(t):
-    r''' member: identifier '.' identifier '''
-    return nodes.ObjectMember(t[0], t[2])
+    r''' member: expression ('.'|'->') identifier '''
+    return nodes.ObjectMember(t[0], t[2], t[1][0] == '->')
 
 def d_declaration(t):
     r''' declaration: identifier 'as' type_identifier '''
@@ -66,8 +67,13 @@ def d_declaration(t):
 def d_literal(t):
     ''' literal: string
                | number
+               | char
     '''
     return t[0]
+
+def d_char(t):
+    ''' char: "'\\\?[a-z A-Z0-9 ]'" '''
+    return nodes.Char(t[0].strip("'"))
 
 def d_string(t):
     r''' string: "\"[^\"]*\"" '''
@@ -208,8 +214,13 @@ def d_assignment(t):
     return nodes.Assignment(t[0], t[2])
 
 def d_if_statement(t):
-    ''' if_statemenet: 'if' condition ':' block ('else:' block)? '''
+    ''' if_statement: 'if' condition ':' block ('else:' block)? '''
     return nodes.If(t[1], t[3], t[4][0][1] if t[4] else None)
+
+def d_import_statement(t):
+    r''' import_statement: 'import' "[^ \\\n]+" '''
+    # TODO: the \n stuff should probably go into d_statement.
+    return nodes.ImportStatement(t[1])
 
 def parse(s, parser=None):
     if parser is None:
