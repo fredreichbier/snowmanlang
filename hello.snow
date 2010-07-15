@@ -1,0 +1,5 @@
+import stdio
+
+main as Function(argc as Int, argv as String*) -> Int:
+    printf("Hello, ☃!")
+    return 0

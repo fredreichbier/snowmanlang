@@ -180,7 +180,7 @@ class If(Statement):
     attributes = ['expr', 'block', ('else_block', None)]
 
 class ImportStatement(Statement):
-    attributes = ['name']
+    attributes = ['path']
 
 class Loop(Statement):
     abstract = True

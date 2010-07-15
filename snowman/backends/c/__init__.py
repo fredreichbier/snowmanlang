@@ -72,7 +72,7 @@ class CGeneratorBackend(Backend):
     visit_Float = visit_Integer
 
     def visit_String(self, node):
-        return '"%s"' % node.children['value']
+        return '"%s"' % repr(node.children['value'])[1:-1]
 
     def visit_Declaration(self, node):
         return fmt('{type} {name}',
