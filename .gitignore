@@ -1,3 +1,5 @@
-tests/d_parser_mach_*
-d_parser_mach*
+*d_parser_mach*
+*.d_parser_mach*
 *.pyc
+.coverage
+coverage-report

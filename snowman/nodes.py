@@ -1,15 +1,58 @@
-import pprint
+from future_builtins import map
 from snowman import operators
 from snowman.utils import ordereddict
 
+class NIL:
+    def __repr__(self):
+        return '<NIL>'
+NIL = NIL()
 
 class Node(object):
     abstract = True
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         if self.__class__.__dict__.get('abstract'):
             raise TypeError("Cannot instantiate abstract class '%s'" % type(self).__name__)
+
         self.children = ordereddict()
+
+        # ugly code that populates the .children dictionary with arguments
+        # taken from *args and **kwargs, respectively.
+        def normalize_attr(attr):
+            if isinstance(attr, tuple):
+                assert len(attr) in (2, 3)
+                if len(attr) == 3:
+                    return attr
+                else:
+                    return (attr[0], attr[1], None)
+            else:
+                return (attr, NIL, None)
+
+        args = list(reversed((args)))
+        attrs = self.attributes
+        for attr in attrs:
+            name, default_value, conversion_func = normalize_attr(attr)
+            try:
+                self.children[name] = kwargs.pop(name)
+                continue
+            except KeyError:
+                pass
+
+            if not args:
+                if default_value is NIL:
+                    raise TypeError("Expected argument '%s'" % attr)
+                else:
+                    value = default_value
+            else:
+                value = args.pop()
+            if conversion_func is not None:
+                value = conversion_func(value)
+            self.children[name] = value
+
+        if kwargs:
+            raise TypeError("Unexpected keyword arguments '%r'" % kwargs.keys())
+        if args:
+            raise TypeError("Unexpected positional arguments '%r'" % args)
 
     def __eq__(self, other):
         if not isinstance(other, Node):
@@ -23,9 +66,7 @@ class Node(object):
         )
 
 class Operator(Node):
-    def __init__(self, op):
-        Node.__init__(self)
-        self.children['op'] = op
+    attributes = ['op']
 
     @classmethod
     def for_symbol(cls, symbol):
@@ -36,36 +77,22 @@ class Expression(Node):
     abstract = True
 
 class ExpressionContainer(Expression):
-    def __init__(self, expr):
-        Node.__init__(self)
-        assert isinstance(expr, Node)
-        self.children['expression'] = expr
+    attributes = ['expression']
 
 
 class Identifier(Expression):
-    def __init__(self, name):
-        Expression.__init__(self)
-        self.children['name'] = name
+    attributes = ['name']
 
 class TypeIdentifier(Identifier):
-    def __init__(self, name, pointer=False):
-        Identifier.__init__(self, name)
-        self.children['pointer'] = pointer
+    attributes = ['name', ('pointer', False)]
 
 class ObjectMember(Expression):
-    def __init__(self, obj, member, do_unary):
-        Expression.__init__(self)
-        self.children['object'] = obj
-        self.children['do_unary'] = do_unary
-        self.children['member'] = member
+    attributes = ['object', 'member', 'do_unary']
 
 
 class Literal(Expression):
     abstract = True
-
-    def __init__(self, value):
-        Expression.__init__(self)
-        self.children['value'] = value
+    attributes = ['value']
 
 class String(Literal):
     pass
@@ -83,34 +110,27 @@ class Float(Number):
     _type = float
 
 
-class Assignment(Expression):
-    def __init__(self, assignee, rval):
-        Expression.__init__(self)
-        self.children['assignee'] = assignee
-        self.children['rval'] = rval
+class AtomicIncrDecr(Expression):
+    attributes = ['expr', ('return_new_value', False)]
 
+class AtomicIncrement(AtomicIncrDecr):
+    pass
+
+class AtomicDecrement(AtomicIncrDecr):
+    pass
+
+class Assignment(Expression):
+    attributes = ['assignee', 'rval']
 
 class FunctionHeader(Expression):
-    def __init__(self, return_type, signature):
-        Expression.__init__(self)
-        assert isinstance(return_type, (Identifier, type(None)))
-        self.children['return_type'] = return_type
-        self.children['signature'] = signature
+    attributes = ['return_type', 'signature']
 
 class Call(Expression):
-    def __init__(self, function_name, argument_list):
-        Expression.__init__(self)
-        assert isinstance(argument_list, list), argument_list
-        self.children['function_name'] = function_name
-        self.children['argument_list'] = argument_list
-
+    attributes = ['function_name', 'argument_list']
 
 class FlatListExpression(Expression):
     abstract = True
-
-    def __init__(self, *nodes):
-        Expression.__init__(self)
-        self.children['nodes'] = list(nodes)
+    attributes = ['nodes']
 
     def merge_list(self, other):
         assert isinstance(other, list)
@@ -124,71 +144,49 @@ class FlatListExpression(Expression):
         return self
 
 class Condition(FlatListExpression):
-    def __init__(self, *nodes):
-        FlatListExpression.__init__(self, *nodes)
+    pass
 
 class MathExpression(FlatListExpression):
-    def __init__(self, *nodes):
-        FlatListExpression.__init__(self, *nodes)
-
+    pass
 
 # Statements.
 class Statement(Node):
     abstract = True
 
 class Declaration(Statement):
-    def __init__(self, name, type):
-        Statement.__init__(self)
-        self.children['name'] = name
-        self.children['type'] = type
+    attributes = ['name', 'type']
 
 class Definition(Statement):
-    def __init__(self, decl, value):
-        Statement.__init__(self)
-        self.children['declaration'] = decl
-        self.children['value'] = value
+    attributes = ['declaration', 'value']
 
 class Function(Statement):
-    def __init__(self, name, header, body):
-        Statement.__init__(self)
-        self.children['name'] = name
-        self.children['header'] = header
-        self.children['body'] = body
+    attributes = ['name', 'header', 'body']
 
 class Block(Statement):
-    def __init__(self, statements):
-        Statement.__init__(self)
-        self.children['statements'] = statements
+    attributes = ['body']
 
 class DeclarationBlock(Statement):
-    def __init__(self, decls):
-        Statement.__init__(self)
-        self.children['decls'] = decls
+    attributes = ['decls']
 
 class Return(Statement):
-    def __init__(self, expr):
-        Statement.__init__(self)
-        self.children['expr'] = expr
+    attributes = ['expr']
 
 class ObjectTypeDeclaration(Statement):
-    def __init__(self, name, parent_type, decl_block):
-        Statement.__init__(self)
-        self.children['name'] = name
-        if parent_type.children['name'] != 'Object':
-            self.children['parent_type'] = parent_type
-        else:
-            self.children['parent_type'] = None
-        self.children['decl_block'] = decl_block
+    _none_if_Object = lambda par:None if par.children['name'] == 'Object' else par
+
+    attributes = ['name', ('parent_type', NIL, _none_if_Object), 'decl_block']
 
 class If(Statement):
-    def __init__(self, expr, block, else_block=None):
-        Statement.__init__(self)
-        assert isinstance(block, Block)
-        self.children['expr'] = expr
-        self.children['block'] = block
-        self.children['else_block'] = else_block
+    attributes = ['expr', 'block', ('else_block', None)]
 
 class ImportStatement(Statement):
-    def __init__(self, path):
-        Statement.__init__(self)
-        self.children['path'] = path
+    attributes = ['name']
+
+class Loop(Statement):
+    abstract = True
+
+class ForLoop(Loop):
+    attributes = ['variable', 'count_start', 'count_end', 'count_step']
+
+class WhileLoop(Statement):
+    attributes = ['condition', 'body']

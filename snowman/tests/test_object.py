@@ -68,10 +68,10 @@ class ObjectTestcase(Testcase):
             )
         ])
         Parent, Child1, Child2, Child1_1 = ast
-        #self.assert_equal(Parent.children['parent_type'], _t('Object'))
-        #self.assert_equal(Child1.children['parent_type'], _t('Parent'))
-        #self.assert_equal(Child2.children['parent_type'], _t('Parent'))
-        #self.assert_equal(Child1_1.children['parent_type'], _t('Child1'))
+        self.assert_equal(Parent.children['parent_type'], None)
+        self.assert_equal(Child1.children['parent_type'], _t('Parent'))
+        self.assert_equal(Child2.children['parent_type'], _t('Parent'))
+        self.assert_equal(Child1_1.children['parent_type'], _t('Child1'))
 
     def test_malloc(self):
         self.assert_generates_ast('''
@@ -95,27 +95,27 @@ class ObjectTestcase(Testcase):
 
     def test_read_member(self):
         self.assert_generates_ast('''
-            foo.attr
+            foo->attr
             blah.attr2
         ''',
         [
-            ObjectMember(_('foo'), _('attr')),
-            ObjectMember(_('blah'), _('attr2'))
+            ObjectMember(_('foo'), _('attr'), do_unary=True),
+            ObjectMember(_('blah'), _('attr2'), do_unary=False)
         ])
 
     def test_set_member(self):
         self.assert_generates_ast('''
-            foo.attr = 42
-            blah.attr = foo.attr
+            foo->attr = 42
+            blah.attr = foo->attr
         ''',
         [
             Assignment(
-                ObjectMember(_('foo'), _('attr')),
+                ObjectMember(_('foo'), _('attr'), do_unary=True),
                 Integer(42)
             ),
             Assignment(
-                ObjectMember(_('blah'), _('attr')),
-                ObjectMember(_('foo'), _('attr'))
+                ObjectMember(_('blah'), _('attr'), do_unary=False),
+                ObjectMember(_('foo'), _('attr'), do_unary=True)
             )
         ])
 

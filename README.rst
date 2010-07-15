@@ -9,6 +9,8 @@ Snow's syntax is inspired by Python. Thus, for blocks, it uses indentation
 
 Here comes the obligatory Hello Snowman in Snow::
 
+   import stdio
+
    main as Function(argc as Int, argv as String*) -> Int:
        printf("Hello, ☃!")
        return 0

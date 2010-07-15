@@ -1,0 +1,3 @@
+#!/bin/sh
+find snowman/tests/ -name "test_*.py" -exec coverage run -a {} \;
+coverage html -d coverage-report

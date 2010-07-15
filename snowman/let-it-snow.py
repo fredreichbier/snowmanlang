@@ -1,20 +1,22 @@
 import os
 import sys
 
+TESTS_DIR = os.path.join(os.path.dirname(__file__), 'tests')
+
 def run_tests():
     import subprocess
-    for test_file in os.listdir('tests'):
+    for test_file in os.listdir(TESTS_DIR):
         if test_file.startswith('test_'):
             return_code = subprocess.Popen([
-                'python', os.path.join('tests', test_file)
+                'python', os.path.join(TESTS_DIR, test_file)
             ]).wait()
-            if return_code:
-                return return_code
+            #if return_code:
+            #    return return_code
 
 def parse_code(code):
     from snowman import parser
     if not hasattr(parse_code, '_parser'):
-        parse_code._parser = parser.Parser(modules=[parser], file_prefix='.dparser_mach_gen')
+        parse_code._parser = parser.Parser(modules=[parser], file_prefix='.d_parser_mach_gen')
     return parser.parse(code, parse_code._parser)
 
 def translate_code(*files):

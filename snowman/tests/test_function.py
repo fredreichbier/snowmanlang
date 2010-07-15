@@ -12,39 +12,48 @@ class FunctionTestcase(Testcase):
                     return a
                 else:
                     return b
+
+            foo2 as Function():
+                return 0
             ''',
-            [Function(
-                _('foo'),
-                FunctionHeader(
-                    _t('String'),
-                    [
-                        Declaration(_('a'), _t('Int')),
-                        Declaration(_('b'), _t('Float')),
-                        Declaration(_('c'), _t('Bool')),
-                        Declaration(_('d'), _t('Bool')),
-                        Declaration(_('e'), _t('Bool')),
-                        Declaration(_('f'), _t('Bool'))
-                    ]
-                ),
-                Block([
-                    If(
-                        Condition(_('a')),
-                        Block([Return(_('a'))])
+            [
+                Function(
+                    _('foo'),
+                    FunctionHeader(
+                        _t('String'),
+                        [
+                            Declaration(_('a'), _t('Int')),
+                            Declaration(_('b'), _t('Float')),
+                            Declaration(_('c'), _t('Bool')),
+                            Declaration(_('d'), _t('Bool')),
+                            Declaration(_('e'), _t('Bool')),
+                            Declaration(_('f'), _t('Bool'))
+                        ]
                     ),
-                    If(
-                        Condition(
-                            _('c'), _op('and'),
-                            _('e'), _op('and'),
-                            ExpressionContainer(Condition(_('d'), _op('or'), _('e'))),
-                            _op('or'),
-                            ExpressionContainer(_('f'))
+                    Block([
+                        If(
+                            Condition([_('a')]),
+                            Block([Return(_('a'))])
                         ),
-                        Block([Return(_('a'))]),
-                        Block([Return(_('b'))])
-                    )
-                ])
-            )]
-        )
+                        If(
+                            Condition([
+                                _('c'), _op('and'),
+                                _('e'), _op('and'),
+                                ExpressionContainer([Condition([_('d'), _op('or'), _('e')])]),
+                                _op('or'),
+                                ExpressionContainer([_('f')])
+                            ]),
+                            Block([Return(_('a'))]),
+                            Block([Return(_('b'))])
+                        )
+                    ])
+                ),
+                Function(
+                    _('foo2'),
+                    FunctionHeader(None, []),
+                    Block([Return(Integer(0))])
+                )
+            ])
 
     def test_recursion(self):
         self.assert_generates_ast('''
@@ -82,14 +91,14 @@ class FunctionTestcase(Testcase):
                     ),
                     Block([
                         If(
-                            Condition(_op('not'), _('n')),
+                            Condition([_op('not'), _('n')]),
                             Block([Return(None)]),
                             Block([
                                 Call(_('bear'), [_('eve'), _('adam')]),
                                 Return(
                                     Call(
                                         _('bear_n'),
-                                        [MathExpression(_('n'), _op('-'), Integer(1))]
+                                        [MathExpression([_('n'), _op('-'), Integer(1)])]
                                     )
                                 )
                             ])

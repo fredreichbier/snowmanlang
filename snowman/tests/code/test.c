@@ -1,13 +1,13 @@
-typedef struct {
+typedef struct _Position Position;
+struct _Position {
     int* x;
     int y;
-} Position;
-
-typedef struct {
+};
+typedef struct __3DPosition _3DPosition;
+struct __3DPosition {
     Position __super__;
     int z;
-} _3DPosition;
-
+};
 int main(int argc, char** argv)
 {
     print("Hello, World!");

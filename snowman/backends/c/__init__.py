@@ -84,7 +84,7 @@ class CGeneratorBackend(Backend):
         return '%s = %s' % tuple(map(self.visit_node, node.children.itervalues()))
 
     def visit_Block(self, node):
-        stmts = map(self.visit_statement, node.children['statements'])
+        stmts = map(self.visit_statement, node.children['body'])
         return '\n{' + indent_lines(stmts) + '\n}'
 
     def visit_Function(self, node):

@@ -1,5 +1,4 @@
 from dparser import Parser
-from itertools import starmap
 import nodes, preprocessor
 
 def d_program(t):
@@ -11,15 +10,25 @@ def d_stuff(t):
     return t[0]
 
 def d_statement(t):
-    ''' statement: expression
-                 | declaration
-                 | definition
-                 | function_definition
-                 | assignment
-                 | return_statement
-                 | type_declaration
-                 | if_statement
-                 | import_statement
+    ''' statement: (simple_statement ';') | (block_statement) '''
+    assert isinstance(t[0][0], nodes.Node)
+    return t[0][0]
+
+def d_simple_statement(t):
+    ''' simple_statement: expression
+                        | import_statement
+                        | declaration
+                        | definition
+                        | assignment
+                        | return_statement
+    '''
+    return t[0]
+
+def d_block_statement(t):
+    ''' block_statement: if_statement
+                       | loop
+                       | function_definition
+                       | type_declaration
     '''
     return t[0]
 
@@ -32,6 +41,8 @@ def d_expression(t):
                   | function_header
                   | condition
                   | math_expression
+                  | atomic_increment
+                  | atomic_decrement
                   | '(' expression ')'
     '''
     if len(t) == 1:
@@ -39,7 +50,7 @@ def d_expression(t):
         return t[0]
     else:
         assert len(t) == 3
-        return nodes.ExpressionContainer(t[1])
+        return nodes.ExpressionContainer([t[1]])
 
 def d_variable(t):
     r''' variable: identifier | member '''
@@ -82,6 +93,11 @@ def d_string(t):
 def d_number(t):
     r''' number: "[0-9][0-9_\.]*" '''
     number = t[0]
+    two_underscores = number.find('__')
+    if two_underscores != -1:
+        raise SyntaxError(
+            number[:two_underscores] + '[syntax error]' + number[two_underscores:]
+        )
     first_dot = number.find('.')
     if first_dot != -1:
         # at least one dot. this is a float
@@ -99,7 +115,7 @@ def d_number(t):
 
 def d_math_expression(t):
     ''' math_expression: expression (math_operator expression)+ '''
-    return nodes.MathExpression(t[0]).merge_list(t[1])
+    return nodes.MathExpression([t[0]]).merge_list(t[1])
 
 def d_math_operator(t):
     ''' math_operator: '+'
@@ -115,12 +131,12 @@ def d_condition(t):
     ''' condition: 'not'? expression (logical_operator expression)* '''
     assert len(t) == 3
     if t[0]:
-        return nodes.Condition(
+        return nodes.Condition([
             nodes.Operator.for_symbol(t[0][0]),
             t[1]
-        ).merge_list(t[2])
+        ]).merge_list(t[2])
     else:
-        return nodes.Condition(t[1]).merge_list(t[2])
+        return nodes.Condition([t[1]]).merge_list(t[2])
 
 def d_logical_operator(t):
     ''' logical_operator: 'is'
@@ -137,6 +153,23 @@ def d_logical_operator(t):
     '''
     return nodes.Operator.for_symbol(t[0])
 
+def d_atomic_increment(t):
+    ''' atomic_increment: ('++' expression | expression '++') '''
+    if t[0][0] == '++':
+        expr, postfix = t[0][1], False
+    else:
+        expr, postfix = t[0][0], True
+    return nodes.AtomicIncrement(expr, postfix)
+
+
+def d_atomic_decrement(t):
+    ''' atomic_decrement: ('--' expression | expression '--') '''
+    if t[0][0] == '--':
+        expr, postfix = t[0][1], False
+    else:
+        expr, postfix = t[0][0], True
+    return nodes.AtomicDecrement(expr, postfix)
+
 # Statements.
 def d_type_declaration(t):
     ''' type_declaration: object_type_declaration '''
@@ -147,8 +180,8 @@ def d_object_type_declaration(t):
     return nodes.ObjectTypeDeclaration(t[0], t[2], t[4])
 
 def d_declaration_block(t):
-    ''' declaration_block: '{' declaration* '}' '''
-    return nodes.DeclarationBlock(t[1])
+    ''' declaration_block: '{' (declaration ';')* '}' '''
+    return nodes.DeclarationBlock([decl_semi[0] for decl_semi in t[1]])
 
 def d_call(t):
     ''' call: variable '(' argument_list? ')' '''
@@ -166,9 +199,9 @@ def d_function_header(t):
     signature = tokens.next()
     if not isinstance(signature, list):
         assert signature == ')'
-        signature = ()
+        signature = []
     else:
-        signature = signature[0]
+        signature = signature[0] if signature else []
         tokens.next() # pass right parent
     return_type = tokens.next()
     if return_type:
@@ -218,11 +251,31 @@ def d_if_statement(t):
     return nodes.If(t[1], t[3], t[4][0][1] if t[4] else None)
 
 def d_import_statement(t):
-    r''' import_statement: 'import' "[^ \\\n]+" '''
-    # TODO: the \n stuff should probably go into d_statement.
+    r''' import_statement: 'import' "[^\n]+" '''
     return nodes.ImportStatement(t[1])
+
+def d_loop(t):
+    ''' loop: for_loop | while_loop '''
+    return t[0]
+
+def d_for_loop(t):
+    '''
+    for_loop: 'for' (variable | declaration)
+              'from' expression
+              'to' expression
+              ('step' expression)?
+              ':' block
+    '''
+    variable = t[1][0]
+    count_start, count_end = t[3], t[5]
+    count_step = t[6][0][1] if t[6] else nodes.AtomicIncrement(variable)
+    return nodes.ForLoop(variable, count_start, count_end, count_step)
+
+def d_while_loop(t):
+    ''' while_loop: 'while' expression ':' block '''
+    return nodes.WhileLoop(t[1], t[3])
 
 def parse(s, parser=None):
     if parser is None:
-        parser = Parser()
+        parser = Parser(file_prefix='.d_parser_mach_gen')
     return parser.parse(preprocessor.preprocess(s)).structure

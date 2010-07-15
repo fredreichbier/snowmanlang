@@ -15,58 +15,58 @@ class MathsTestCase(Testcase):
         [
             Definition(
                 Declaration(_('a'), _t('Int')),
-                MathExpression(Integer(5), _op('*'), Integer(8)),
+                MathExpression([Integer(5), _op('*'), Integer(8)]),
             ),
             Definition(
                 Declaration(_('b'), _t('Float')),
-                MathExpression(Integer(10), _op('*'), Float(3.14))
+                MathExpression([Integer(10), _op('*'), Float(3.14)])
             ),
             Assignment(_('b'),
-                MathExpression(Integer(10), _op('/'), Float(5.678))
+                MathExpression([Integer(10), _op('/'), Float(5.678)])
             ),
             Assignment(_('b'),
-                MathExpression(Integer(5), _op('*'), Integer(5), _op('+'), Integer(1))
+                MathExpression([Integer(5), _op('*'), Integer(5), _op('+'), Integer(1)])
             ),
             Assignment(_('b'),
-                MathExpression(
+                MathExpression([
                     Integer(5),
                     _op('*'),
                     Integer(3),
                     _op('+'),
-                    ExpressionContainer(
-                        MathExpression(
+                    ExpressionContainer([
+                        MathExpression([
                             Integer(2), _op('*'), Integer(7)
-                        )
-                    )
-                )
+                        ])
+                    ])
+                ])
             ),
-            MathExpression(
+            MathExpression([
                 Integer(7),
                 _op('+'),
-                ExpressionContainer(
-                    MathExpression(
+                ExpressionContainer([
+                    MathExpression([
                         Integer(3),
                         _op('**'),
-                        ExpressionContainer(
-                            MathExpression(Integer(2), _op('+'), Integer(1))
-                        ),
+                        ExpressionContainer([
+                            MathExpression([Integer(2), _op('+'), Integer(1)])
+                        ]),
                         _op('/'),
                         Integer(5),
                         _op('^'),
                         Integer(7),
                         _op('*'),
-                        ExpressionContainer(
-                            MathExpression(Integer(8), _op('/'), Integer(9))
-                        ),
-                    )
-                ),
+                        ExpressionContainer([
+                            MathExpression([Integer(8), _op('/'), Integer(9)])
+                        ]),
+                    ]),
+                ]),
                 _op('-'),
                 Integer(9),
                 _op('*'),
-                ExpressionContainer(
-                    MathExpression(Integer(5), _op('-'), Integer(3))
-                )
-            )
+                ExpressionContainer([
+                    MathExpression([Integer(5), _op('-'), Integer(3)])
+                ])
+            ])
         ])
 
     def test_with_vars_and_calls(self):
@@ -77,11 +77,11 @@ class MathsTestCase(Testcase):
             [
                 Definition(
                     Declaration(_('a'), _t('Int')),
-                    MathExpression(Integer(5), _op('**'), Float(0.7))
+                    MathExpression([Integer(5), _op('**'), Float(0.7)])
                 ),
                 Definition(
                     Declaration(_('b'), _t('Float')),
-                    MathExpression(
+                    MathExpression([
                         Float(0.2),
                         _op('*'),
                         Call(_('sqrt'), [Integer(2)]),
@@ -89,13 +89,13 @@ class MathsTestCase(Testcase):
                         _('a'),
                         _op('/'),
                         Call(_('blah'),
-                             [MathExpression(
+                             [MathExpression([
                                  _('a'),
                                  _op('*'),
                                 Call(_('sqrt'), [Integer(2)])
-                             )]
+                             ])]
                         )
-                    )
+                    ])
                 )
             ])
 
